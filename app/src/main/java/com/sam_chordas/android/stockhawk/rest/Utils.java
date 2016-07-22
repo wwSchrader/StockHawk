@@ -2,12 +2,15 @@ package com.sam_chordas.android.stockhawk.rest;
 
 import android.content.ContentProviderOperation;
 import android.util.Log;
+
 import com.sam_chordas.android.stockhawk.data.QuoteColumns;
 import com.sam_chordas.android.stockhawk.data.QuoteProvider;
-import java.util.ArrayList;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 /**
  * Created by sam_chordas on 10/8/15.
@@ -46,6 +49,41 @@ public class Utils {
       Log.e(LOG_TAG, "String to JSON failed: " + e);
     }
     return batchOperations;
+  }
+
+  public static boolean checkForInvalidStocks(String JSON){
+    JSONObject jsonObject = null;
+    JSONArray resultsArray = null;
+    Boolean invalidStock = false;
+
+    //checks to see if any of the name values in the JSON string is null
+    try{
+      jsonObject = new JSONObject(JSON);
+      if (jsonObject != null && jsonObject.length() != 0){
+        jsonObject = jsonObject.getJSONObject("query");
+        int count = Integer.parseInt(jsonObject.getString("count"));
+        if (count == 1){
+          jsonObject = jsonObject.getJSONObject("results")
+                  .getJSONObject("quote");
+          if (jsonObject.getString("Name").matches("null"))
+            invalidStock = true;
+
+        } else{
+          resultsArray = jsonObject.getJSONObject("results").getJSONArray("quote");
+
+          if (resultsArray != null && resultsArray.length() != 0){
+            for (int i = 0; i < resultsArray.length(); i++){
+              jsonObject = resultsArray.getJSONObject(i);
+              if (jsonObject.getString("Name").matches("null"))
+                invalidStock = true;
+            }
+          }
+        }
+      }
+    } catch (JSONException e){
+      Log.e(LOG_TAG, "Error in checking for valid stocks: " + e);
+    }
+    return invalidStock;
   }
 
   public static String truncateBidPrice(String bidPrice){
