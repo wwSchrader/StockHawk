@@ -1,5 +1,6 @@
 package com.sam_chordas.android.stockhawk.rest;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Color;
@@ -43,6 +44,7 @@ public class QuoteCursorAdapter extends CursorRecyclerViewAdapter<QuoteCursorAda
     return vh;
   }
 
+  @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
   @Override
   public void onBindViewHolder(final ViewHolder viewHolder, final Cursor cursor){
     viewHolder.symbol.setText(cursor.getString(cursor.getColumnIndex("symbol")));

@@ -1,13 +1,25 @@
 <resources>
-  <string name="app_name">Stock Hawk</string>
+    <string name="app_name">Stock Hawk</string>
 
-  <string name="action_example">Example action</string>
+    <string name="action_example">Example action</string>
 
-  <string name="action_settings">Settings</string>
-  <string name="action_change_units">Change Units</string>
-  <string name="symbol_search">Symbol Search</string>
-  <string name="content_test">Search for a Stock Symbol</string>
-  <string name="input_hint">FB</string>
-  <string name="input_prefill"></string>
-  <string name="network_toast">Uh-oh! This app requires an internet connection</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_change_units">Change Units</string>
+    <string name="symbol_search">Symbol Search</string>
+    <string name="content_test">Search for a Stock Symbol</string>
+    <string name="input_hint">FB</string>
+    <string name="input_prefill"></string>
+    <string name="network_toast">Uh-oh! This app requires an internet connection</string>
+    <string name="empty_view_message">You have no stocks in your list. Add one to begin tracking!</string>
+
+    <!--Key name for storing stock status in SharedPreferences-->
+    <string name="pref_stock_status_key" translatable="false">stock-status</string>
+    <string name="pref_network_status_key" translatable="false">network-status</string>
+    <string name="pref_no_network_status_key" translatable="false">no-network-status</string>
+
+    <!--Empty view messages-->
+    <string name="empty_view_message_no_network">Stock information not available. Please check your network settings!</string>
+    <string name="empty_view_message_server_down">Stock information not available. Server is not returning data.</string>
+    <string name="empty_view_message_server_error">Stock information not available. Server is returning invalid data. Please check for an updated version of Stock Hawk.</string>
+
 </resources>
