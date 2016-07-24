@@ -17,6 +17,10 @@
     <string name="pref_network_status_key" translatable="false">network-status</string>
     <string name="pref_no_network_status_key" translatable="false">no-network-status</string>
 
+    <string name="intent_stock_symbol" translatable="false">intent-stock-symbol</string>
+
+    <string name="title_activity_line_graph">Line Graph</string>
+
     <!--Empty view messages-->
     <string name="empty_view_message_no_network">Stock information not available. Please check your network settings!</string>
     <string name="empty_view_message_server_down">Stock information not available. Server is not returning data.</string>
