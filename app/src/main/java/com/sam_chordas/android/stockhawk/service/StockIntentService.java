@@ -4,12 +4,17 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+
 import com.google.android.gms.gcm.TaskParams;
 
 /**
  * Created by sam_chordas on 10/1/15.
  */
 public class StockIntentService extends IntentService {
+
+  public static final String BROADCAST_ACTION = "com.sam_chordas.android.stockhawk.BROADCAST";
+
+  public static final String DATA_STATUS = "com.sam_chordas.android.stockhawk.STATUS";
 
   public StockIntentService(){
     super(StockIntentService.class.getName());

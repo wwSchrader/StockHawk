@@ -62,6 +62,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
   boolean isConnected;
   private RecyclerView mRecyclerView;
   private TextView mEmptyView;
+  private ConnectionChangeReceiver mConnectionChangeReceiver;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -69,8 +70,8 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     mContext = this;
     ConnectivityManager cm =
         (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-
     NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+
     isConnected = activeNetwork != null &&
         activeNetwork.isConnectedOrConnecting();
 
@@ -179,7 +180,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
   public void onResume() {
     SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
     sp.registerOnSharedPreferenceChangeListener(this);
-    registerReceiver(new ConnectionChangeReceiver(), new IntentFilter((ConnectivityManager.CONNECTIVITY_ACTION)));
+    registerReceiver(mConnectionChangeReceiver = new ConnectionChangeReceiver(), new IntentFilter((ConnectivityManager.CONNECTIVITY_ACTION)));
     super.onResume();
     getLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
   }
@@ -188,6 +189,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
   public void onPause(){
     SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
     sp.unregisterOnSharedPreferenceChangeListener(this);
+    unregisterReceiver(mConnectionChangeReceiver);
     super.onPause();
   }
 

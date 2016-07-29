@@ -29,6 +29,8 @@ import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 /**
  * Created by sam_chordas on 9/30/15.
@@ -68,29 +70,123 @@ public class StockTaskService extends GcmTaskService{
 
   @Override
   public int onRunTask(TaskParams params){
-    Cursor initQueryCursor;
+    int result;
     if (mContext == null){
       mContext = this;
     }
+
+    switch (params.getTag()){
+      case "init": case "periodic": case "add":
+        result = updateStockList(params);
+        result = addHistoricalData(params);
+        break;
+      case "historical":
+        result = addHistoricalData(params);
+        break;
+      default:
+        result = GcmNetworkManager.RESULT_FAILURE;
+      }
+    return result;
+    }
+
+  private int addHistoricalData(TaskParams params) {
+    Cursor initQueryCursor;
+    int result = GcmNetworkManager.RESULT_FAILURE;
+
+    mContext.getContentResolver().delete(QuoteProvider.HistoricalData.CONTENT_URI, null, null);
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    Calendar cal = Calendar.getInstance();
+    String todaysDate = dateFormat.format(cal.getTime());
+    cal.add(Calendar.DATE, -365);
+    String dateOneYearAgo = dateFormat.format(cal.getTime());
+
+    initQueryCursor = mContext.getContentResolver().query(
+            QuoteProvider.Quotes.CONTENT_URI,
+            new String[] { "Distinct " + QuoteColumns.SYMBOL },
+            null,
+            null,
+            null);
+    initQueryCursor.moveToFirst();
+
+    for (int i = 0; i < initQueryCursor.getCount(); i++){
+      // TODO: 7/27/2016 Add table column index array
+      result = grabHistoricalJsonString(initQueryCursor.getString(0), dateOneYearAgo, todaysDate);
+      initQueryCursor.moveToNext();
+    }
+    return result;
+  }
+
+
+  private int grabHistoricalJsonString(String stockSymbol, String dateOneYearAgo, String todaysDate){
+
+    StringBuilder urlStringBuilder = new StringBuilder();
+    try{
+
+      // Base URL for the Yahoo query getting historical data for the past year
+      urlStringBuilder.append("https://query.yahooapis.com/v1/public/yql?q=" + URLEncoder.encode("select * from yahoo.finance.historicaldata where symbol = \" "
+              + stockSymbol + "\" and startDate = \"" +
+              dateOneYearAgo + "\" and endDate = \"" + todaysDate + "\"", "UTF-8"));
+
+
+      // finalize the URL for the API query.
+      urlStringBuilder.append("&format=json&diagnostics=true&env=store%3A%2F%2Fdatatables."
+              + "org%2Falltableswithkeys&callback=");
+
+
+
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
+    }
+    String urlString;
+    String getResponse;
+    int result = GcmNetworkManager.RESULT_FAILURE;
+
+    if (urlStringBuilder != null){
+      urlString = urlStringBuilder.toString();
+      try{
+        getResponse = fetchData(urlString);
+        result = GcmNetworkManager.RESULT_SUCCESS;
+        try {
+          // update ISCURRENT to 0 (false) so new data is current
+          mContext.getContentResolver().applyBatch(QuoteProvider.AUTHORITY,
+                    Utils.historicalJsonToContentVals(getResponse));
+        }catch (RemoteException | OperationApplicationException e){
+          Log.e(LOG_TAG, "Error applying batch insert", e);
+          //invalid data from server
+          setStockStatus(mContext, STOCK_STATUS_SERVER_INVALID);
+        }
+      } catch (IOException e){
+        e.printStackTrace();
+        //no data collected from server
+        setStockStatus(mContext, STOCK_STATUS_SERVER_DOWN);
+      }
+    }
+    //data was retrieved successfully
+    setStockStatus(mContext, STOCK_STATUS_OK);
+    return result;
+  }
+
+  private int updateStockList(TaskParams params){
+    Cursor initQueryCursor;
     StringBuilder urlStringBuilder = new StringBuilder();
     try{
       // Base URL for the Yahoo query
       urlStringBuilder.append("https://query.yahooapis.com/v1/public/yql?q=");
       urlStringBuilder.append(URLEncoder.encode("select * from yahoo.finance.quotes where symbol "
-        + "in (", "UTF-8"));
+              + "in (", "UTF-8"));
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
     }
     if (params.getTag().equals("init") || params.getTag().equals("periodic")){
       isUpdate = true;
       initQueryCursor = mContext.getContentResolver().query(QuoteProvider.Quotes.CONTENT_URI,
-          new String[] { "Distinct " + QuoteColumns.SYMBOL }, null,
-          null, null);
+              new String[] { "Distinct " + QuoteColumns.SYMBOL }, null,
+              null, null);
       if (initQueryCursor.getCount() == 0 || initQueryCursor == null){
         // Init task. Populates DB with quotes for the symbols seen below
         try {
           urlStringBuilder.append(
-              URLEncoder.encode("\"YHOO\",\"AAPL\",\"GOOG\",\"MSFT\")", "UTF-8"));
+                  URLEncoder.encode("\"YHOO\",\"AAPL\",\"GOOG\",\"MSFT\")", "UTF-8"));
         } catch (UnsupportedEncodingException e) {
           e.printStackTrace();
         }
@@ -99,7 +195,7 @@ public class StockTaskService extends GcmTaskService{
         initQueryCursor.moveToFirst();
         for (int i = 0; i < initQueryCursor.getCount(); i++){
           mStoredSymbols.append("\""+
-              initQueryCursor.getString(initQueryCursor.getColumnIndex("symbol"))+"\",");
+                  initQueryCursor.getString(initQueryCursor.getColumnIndex("symbol"))+"\",");
           initQueryCursor.moveToNext();
         }
         mStoredSymbols.replace(mStoredSymbols.length() - 1, mStoredSymbols.length(), ")");
@@ -121,7 +217,7 @@ public class StockTaskService extends GcmTaskService{
     }
     // finalize the URL for the API query.
     urlStringBuilder.append("&format=json&diagnostics=true&env=store%3A%2F%2Fdatatables."
-        + "org%2Falltableswithkeys&callback=");
+            + "org%2Falltableswithkeys&callback=");
 
     String urlString;
     String getResponse;
@@ -138,7 +234,7 @@ public class StockTaskService extends GcmTaskService{
           if (isUpdate){
             contentValues.put(QuoteColumns.ISCURRENT, 0);
             mContext.getContentResolver().update(QuoteProvider.Quotes.CONTENT_URI, contentValues,
-                null, null);
+                    null, null);
           }
           if (Utils.checkForInvalidStocks(getResponse)){
             Handler mHandler = new Handler(mContext.getMainLooper());
@@ -149,6 +245,7 @@ public class StockTaskService extends GcmTaskService{
               }
             });
           } else {
+
             mContext.getContentResolver().applyBatch(QuoteProvider.AUTHORITY,
                     Utils.quoteJsonToContentVals(getResponse));
           }
@@ -156,25 +253,25 @@ public class StockTaskService extends GcmTaskService{
         }catch (RemoteException | OperationApplicationException e){
           Log.e(LOG_TAG, "Error applying batch insert", e);
           //invalid data from server
-          setLocationStatus(mContext, STOCK_STATUS_SERVER_INVALID);
+          setStockStatus(mContext, STOCK_STATUS_SERVER_INVALID);
         }
       } catch (IOException e){
         e.printStackTrace();
         //no data collected from server
-        setLocationStatus(mContext, STOCK_STATUS_SERVER_DOWN);
+        setStockStatus(mContext, STOCK_STATUS_SERVER_DOWN);
       }
     }
     //data was retrieved successfully
-    setLocationStatus(mContext, STOCK_STATUS_OK);
+    setStockStatus(mContext, STOCK_STATUS_OK);
     return result;
   }
 
-    //sets location status into shared preference
-    static private void setLocationStatus(Context c, @StockStatus int locationStatus){
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(c);
-        SharedPreferences.Editor spe = sp.edit();
-        spe.putInt(c.getString(R.string.pref_stock_status_key), locationStatus);
-        spe.commit();
-    }
+  //sets location status into shared preference
+  static private void setStockStatus(Context c, @StockStatus int locationStatus){
+      SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(c);
+      SharedPreferences.Editor spe = sp.edit();
+      spe.putInt(c.getString(R.string.pref_stock_status_key), locationStatus);
+      spe.commit();
+  }
 
 }
