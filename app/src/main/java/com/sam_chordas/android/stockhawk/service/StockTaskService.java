@@ -2,6 +2,7 @@ package com.sam_chordas.android.stockhawk.service;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -54,6 +55,9 @@ public class StockTaskService extends GcmTaskService{
     public static final int STOCK_STATUS_SERVER_INVALID = 2;
     public static final int STOCK_STATUS_UNKNOWN = 3;
 
+  public static final String ACTION_DATA_UPDATED =
+          "com.sam_chordas.android.stockhawk.app.ACTION_DATA_UPDATED";
+
   public StockTaskService(){}
 
   public StockTaskService(Context context){
@@ -86,8 +90,15 @@ public class StockTaskService extends GcmTaskService{
       default:
         result = GcmNetworkManager.RESULT_FAILURE;
       }
+    updateWidgets();
     return result;
     }
+
+  private void updateWidgets() {
+    Intent dataUpdatedIntent = new Intent(ACTION_DATA_UPDATED)
+            .setPackage(mContext.getPackageName());
+    mContext.sendBroadcast(dataUpdatedIntent);
+  }
 
   private int addHistoricalData(TaskParams params) {
     Cursor initQueryCursor;
