@@ -84,6 +84,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
       mServiceIntent.putExtra("tag", "init");
       if (isConnected){
         startService(mServiceIntent);
+        Log.i(LOG_TAG, "Init service started");
       } else{
         networkToast();
       }
@@ -137,6 +138,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
                     // Add the stock to DB
                     mServiceIntent.putExtra("tag", "add");
                     mServiceIntent.putExtra("symbol", input.toString());
+                    Log.i(LOG_TAG, "Add service started");
                     startService(mServiceIntent);
                   }
                 }
@@ -171,6 +173,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
           .build();
       // Schedule task with tag "periodic." This ensure that only the stocks present in the DB
       // are updated.
+      Log.i(LOG_TAG, "Periodic service initialized");
       GcmNetworkManager.getInstance(this).schedule(periodicTask);
     }
   }
@@ -182,7 +185,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     sp.registerOnSharedPreferenceChangeListener(this);
     registerReceiver(mConnectionChangeReceiver = new ConnectionChangeReceiver(), new IntentFilter((ConnectivityManager.CONNECTIVITY_ACTION)));
     super.onResume();
-    getLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
+//    getLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
   }
 
   @Override
@@ -271,13 +274,13 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
             message = R.string.empty_view_message_server_down;
             mRecyclerView.setVisibility(View.GONE);
             mEmptyView.setVisibility(View.VISIBLE);
-            Log.i(LOG_TAG, "Empty view triggered");
+            Log.i(LOG_TAG, "Server down view triggered");
             break;
           case StockTaskService.STOCK_STATUS_SERVER_INVALID:
             message = R.string.empty_view_message_server_error;
             mRecyclerView.setVisibility(View.GONE);
             mEmptyView.setVisibility(View.VISIBLE);
-            Log.i(LOG_TAG, "Empty view triggered");
+            Log.i(LOG_TAG, "Server invalid view triggered");
             break;
           default:
             if (!Utils.isNetworkAvailable(this)){

@@ -262,9 +262,15 @@ public class StockTaskService extends GcmTaskService{
             mContext.getContentResolver().applyBatch(QuoteProvider.AUTHORITY,
                     Utils.quoteJsonToContentVals(getResponse));
           }
+          //data was retrieved successfully
+          setStockStatus(mContext, STOCK_STATUS_OK);
 
-        }catch (RemoteException | OperationApplicationException e){
+        }catch (RemoteException | OperationApplicationException e ){
           Log.e(LOG_TAG, "Error applying batch insert", e);
+          //invalid data from server
+          setStockStatus(mContext, STOCK_STATUS_SERVER_INVALID);
+        } catch (NumberFormatException e){
+          Log.e(LOG_TAG, "Possible null input received from a critical value: ", e);
           //invalid data from server
           setStockStatus(mContext, STOCK_STATUS_SERVER_INVALID);
         }
@@ -274,8 +280,7 @@ public class StockTaskService extends GcmTaskService{
         setStockStatus(mContext, STOCK_STATUS_SERVER_DOWN);
       }
     }
-    //data was retrieved successfully
-    setStockStatus(mContext, STOCK_STATUS_OK);
+
     return result;
   }
 
