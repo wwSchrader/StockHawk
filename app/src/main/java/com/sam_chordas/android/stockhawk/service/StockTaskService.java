@@ -156,6 +156,7 @@ public class StockTaskService extends GcmTaskService{
       urlString = urlStringBuilder.toString();
       try{
         getResponse = fetchData(urlString);
+        Log.v(LOG_TAG, getResponse);
         result = GcmNetworkManager.RESULT_SUCCESS;
         try {
           // update ISCURRENT to 0 (false) so new data is current
@@ -238,6 +239,7 @@ public class StockTaskService extends GcmTaskService{
       urlString = urlStringBuilder.toString();
       try{
         getResponse = fetchData(urlString);
+        Log.v(LOG_TAG, getResponse);
         result = GcmNetworkManager.RESULT_SUCCESS;
         try {
           ContentValues contentValues = new ContentValues();

@@ -9,7 +9,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.support.annotation.NonNull;
-import android.support.v4.app.TaskStackBuilder;
 import android.widget.RemoteViews;
 
 import com.sam_chordas.android.stockhawk.R;
@@ -36,6 +35,7 @@ public class WidgetAppProvider extends AppWidgetProvider {
     }
 
     public void  onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds){
+
         for (int appWidgetId : appWidgetIds){
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_collection);
 
@@ -49,19 +49,19 @@ public class WidgetAppProvider extends AppWidgetProvider {
                 setRemoteAdapterV11(context, views);
             }
 
-            boolean useDetailActivity = context.getResources().getBoolean(R.bool.use_detail_activity);
-            Intent clickIntentTemplate = useDetailActivity
-                    ? new Intent(context, LineGraphActivity.class)
-                    : new Intent(context, MyStocksActivity.class);
-            PendingIntent clickPendingIntentTemplate = TaskStackBuilder.create(context)
-                    .addNextIntentWithParentStack(clickIntentTemplate)
-                    .getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-            views.setPendingIntentTemplate(R.id.widget_list_item, clickPendingIntentTemplate);
+
+            Intent clickIntentTemplate = new Intent(context, LineGraphActivity.class);
+
+            PendingIntent clickPendingIntentTemplate = PendingIntent.getActivity(context,
+                    0, clickIntentTemplate, PendingIntent.FLAG_UPDATE_CURRENT);
+            views.setPendingIntentTemplate(R.id.widget_list, clickPendingIntentTemplate);
             views.setEmptyView(R.id.widget_list, R.id.widget_empty);
 
             // Tell the AppWidgetManager to perform an update on the current app widget
             appWidgetManager.updateAppWidget(appWidgetId, views);
         }
+        super.onUpdate(context, appWidgetManager, appWidgetIds);
+
     }
 
     @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
