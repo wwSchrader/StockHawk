@@ -126,7 +126,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
                   // in the DB and proceed accordingly
                   Cursor c = getContentResolver().query(QuoteProvider.Quotes.CONTENT_URI,
                       new String[] { QuoteColumns.SYMBOL }, QuoteColumns.SYMBOL + "= ?",
-                      new String[] { input.toString() }, null);
+                      new String[] { input.toString().toUpperCase() }, null);
                   if (c.getCount() != 0) {
                     Toast toast =
                         Toast.makeText(MyStocksActivity.this,
@@ -137,7 +137,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
                   } else {
                     // Add the stock to DB
                     mServiceIntent.putExtra("tag", "add");
-                    mServiceIntent.putExtra("symbol", input.toString());
+                    mServiceIntent.putExtra("symbol", input.toString().toUpperCase());
                     Log.i(LOG_TAG, "Add service started");
                     startService(mServiceIntent);
                   }
