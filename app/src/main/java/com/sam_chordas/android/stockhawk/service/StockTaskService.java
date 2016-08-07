@@ -266,7 +266,8 @@ public class StockTaskService extends GcmTaskService{
             mHandler.post(new Runnable() {
               @Override
               public void run() {
-                Toast.makeText(mContext, getString(R.string.invalid_stock), Toast.LENGTH_SHORT).show();
+                String invalidMessage = mContext.getString(R.string.invalid_stock);
+                Toast.makeText(mContext, invalidMessage, Toast.LENGTH_SHORT).show();
               }
             });
           } else {
