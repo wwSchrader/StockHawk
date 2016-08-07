@@ -84,7 +84,6 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
       mServiceIntent.putExtra("tag", "init");
       if (isConnected){
         startService(mServiceIntent);
-        Log.i(LOG_TAG, "Init service started");
       } else{
         networkToast();
       }
@@ -301,7 +300,6 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
 
   @Override
   public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key){
-    Log.i(LOG_TAG, "onSharedPreferenceChanged triggered");
     if (key.equals(getString(R.string.pref_stock_status_key))){
       updateEmptyView();
     } else if (key.equals(getString(R.string.pref_network_status_key))){

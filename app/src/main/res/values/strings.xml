@@ -26,7 +26,10 @@
     <string name="empty_view_message_no_network">Stock information not available. Please check your network settings!</string>
     <string name="empty_view_message_server_down">Stock information not available. Server is not returning data.</string>
     <string name="empty_view_message_server_error">Stock information not available. Server is returning invalid data. Please check for an updated version of Stock Hawk.</string>
-    <string name="appwidget_text">EXAMPLE</string>
+
+    <string name="appwidget_text">Stock Hawk</string>
     <string name="add_widget">Add widget</string>
+    <string name="add_stock">Add Stock to List</string>
+    <string name="change_units">Change units</string>
 
 </resources>

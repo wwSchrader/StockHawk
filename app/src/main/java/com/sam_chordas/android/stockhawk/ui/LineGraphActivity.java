@@ -28,6 +28,7 @@ import java.util.ArrayList;
 public class LineGraphActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
 
     private LineChartView lineChartView;
+    private CharSequence mTitle;
     private LineSet dataSet;
     private String[] labels;
     private float[] values;
@@ -49,6 +50,9 @@ public class LineGraphActivity extends AppCompatActivity implements LoaderManage
         setContentView(R.layout.activity_line_graph);
         lineChartView = (LineChartView) findViewById(R.id.linechart);
         updateGraph();
+        mTitle = intent.getStringExtra(getString(R.string.intent_stock_symbol)) + " historical graph";
+        setTitle(mTitle);
+
 
     }
 
@@ -125,12 +129,12 @@ public class LineGraphActivity extends AppCompatActivity implements LoaderManage
             //setting up line graph
 
             dataSet = new LineSet(labels, values);
-            dataSet.setColor(Color.BLUE)
+            dataSet.setColor(getResources().getColor(R.color.material_blue_500))
                     .setSmooth(true);
             lineChartView.addData(dataSet);
 
-            lineChartView.setAxisColor(Color.WHITE)
-                    .setLabelsColor(Color.WHITE);
+            lineChartView.setAxisColor(Color.BLACK)
+                    .setLabelsColor(Color.BLACK);
             lineChartView.setAxisBorderValues(Math.round(axisMin) - 1, Math.round(axisMax) + 1);
 
             lineChartView.show();
