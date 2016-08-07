@@ -26,7 +26,7 @@ repositories {
 
 dependencies {
 
-  compile 'com.google.android.gms:play-services-gcm:9.2.1'
+  compile 'com.google.android.gms:play-services-gcm:9.4.0'
   compile 'com.android.support:support-annotations:24.1.1'
   compile 'com.squareup.okhttp:okhttp:2.7.5'
   apt 'net.simonvt.schematic:schematic-compiler:0.6.7'

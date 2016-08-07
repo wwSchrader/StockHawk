@@ -55,8 +55,16 @@ public class StockTaskService extends GcmTaskService{
     public static final int STOCK_STATUS_SERVER_INVALID = 2;
     public static final int STOCK_STATUS_UNKNOWN = 3;
 
+    public static final int COL_INDEX_STOCK_SYMBOL = 0;
+
+    public static final int DAYS_IN_YEAR = 365;
+
   public static final String ACTION_DATA_UPDATED =
           "com.sam_chordas.android.stockhawk.app.ACTION_DATA_UPDATED";
+
+  private static String dateFormatString= "yyyy-MM-dd";
+
+  private String startingStockList = "\"YHOO\",\"AAPL\",\"GOOG\",\"MSFT\")";
 
   public StockTaskService(){}
 
@@ -105,10 +113,10 @@ public class StockTaskService extends GcmTaskService{
     int result = GcmNetworkManager.RESULT_FAILURE;
 
     mContext.getContentResolver().delete(QuoteProvider.HistoricalData.CONTENT_URI, null, null);
-    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    SimpleDateFormat dateFormat = new SimpleDateFormat(dateFormatString);
     Calendar cal = Calendar.getInstance();
     String todaysDate = dateFormat.format(cal.getTime());
-    cal.add(Calendar.DATE, -365);
+    cal.add(Calendar.DATE, DAYS_IN_YEAR * -1);
     String dateOneYearAgo = dateFormat.format(cal.getTime());
 
     initQueryCursor = mContext.getContentResolver().query(
@@ -117,13 +125,18 @@ public class StockTaskService extends GcmTaskService{
             null,
             null,
             null);
-    initQueryCursor.moveToFirst();
+    if (initQueryCursor != null) {
+      initQueryCursor.moveToFirst();
 
-    for (int i = 0; i < initQueryCursor.getCount(); i++){
-      // TODO: 7/27/2016 Add table column index array
-      result = grabHistoricalJsonString(initQueryCursor.getString(0), dateOneYearAgo, todaysDate);
-      initQueryCursor.moveToNext();
+      for (int i = 0; i < initQueryCursor.getCount(); i++){
+        result = grabHistoricalJsonString(initQueryCursor.getString(COL_INDEX_STOCK_SYMBOL), dateOneYearAgo, todaysDate);
+        initQueryCursor.moveToNext();
+      }
+
+      initQueryCursor.close();
     }
+
+
     return result;
   }
 
@@ -134,7 +147,8 @@ public class StockTaskService extends GcmTaskService{
     try{
 
       // Base URL for the Yahoo query getting historical data for the past year
-      urlStringBuilder.append("https://query.yahooapis.com/v1/public/yql?q=" + URLEncoder.encode("select * from yahoo.finance.historicaldata where symbol = \" "
+      urlStringBuilder.append("https://query.yahooapis.com/v1/public/yql?q=" +
+              URLEncoder.encode("select * from yahoo.finance.historicaldata where symbol = \" "
               + stockSymbol + "\" and startDate = \"" +
               dateOneYearAgo + "\" and endDate = \"" + todaysDate + "\"", "UTF-8"));
 
@@ -198,7 +212,7 @@ public class StockTaskService extends GcmTaskService{
         // Init task. Populates DB with quotes for the symbols seen below
         try {
           urlStringBuilder.append(
-                  URLEncoder.encode("\"YHOO\",\"AAPL\",\"GOOG\",\"MSFT\")", "UTF-8"));
+                  URLEncoder.encode(startingStockList, "UTF-8"));
         } catch (UnsupportedEncodingException e) {
           e.printStackTrace();
         }
@@ -254,7 +268,7 @@ public class StockTaskService extends GcmTaskService{
             mHandler.post(new Runnable() {
               @Override
               public void run() {
-                Toast.makeText(mContext, "Invalid Stock!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, getString(R.string.invalid_stock), Toast.LENGTH_SHORT).show();
               }
             });
           } else {

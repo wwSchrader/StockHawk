@@ -10,7 +10,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.support.v4.widget.CursorAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
@@ -30,16 +29,14 @@ public class LineGraphActivity extends AppCompatActivity implements LoaderManage
 
     private LineChartView lineChartView;
     private LineSet dataSet;
-    private String[] labels = {"January", "February", "March"};
-    private float[] values = {53.99f, 48.77f, 63.77f};
+    private String[] labels;
+    private float[] values;
     private String stockSymbol;
-    private Intent mServiceIntent;
-    boolean isConnected;
     Context mContext;
-    CursorAdapter mCursorAdapter;
     Cursor mCursor;
     private static int CURSOR_LOADER_ID = 0;
     private final String LOG_TAG = MyStocksActivity.class.getSimpleName();
+    private String[] dateCheckers = {"12-31","03-31","06-30","09-30"};
 
     String[] cursorParamaters = {HistoricalColumns.SYMBOL, HistoricalColumns.DATE, HistoricalColumns.ADJ_CLOSE};
 
@@ -81,14 +78,40 @@ public class LineGraphActivity extends AppCompatActivity implements LoaderManage
         ArrayList<Float> closingPrice = new ArrayList<>();
         mCursor = data;
         int j = 0;
-
+        float axisMin;
+        float axisMax;
+        float stockPrice;
+        String priceDate;
 
         if (mCursor.moveToFirst()){
             String selectedSymbol = mCursor.getString(0);
             Log.v(LOG_TAG, selectedSymbol);
+            axisMax = mCursor.getFloat(2);
+            axisMin = mCursor.getFloat(2);
 
             for (int i = 0; i < mCursor.getCount(); i++){
-                date.add(mCursor.getString(1));
+                stockPrice = mCursor.getFloat(2);
+                //set the max and min border axis
+                if(stockPrice > axisMax)
+                    axisMax = stockPrice;
+                if (stockPrice < axisMin)
+                    axisMin = stockPrice;
+
+                boolean isEndOfMonth = false;
+                priceDate = mCursor.getString(1);
+                for (String d : dateCheckers){
+                    if(priceDate.contains(d)){
+                        date.add(mCursor.getString(1).substring(5));
+                        isEndOfMonth = true;
+                        break;
+                    }
+                }
+                //adds blank string if date isn't end of month
+                if (!isEndOfMonth){
+                    date.add(" ");
+                }
+
+
                 closingPrice.add(mCursor.getFloat(2));
                 mCursor.moveToNext();
             }
@@ -99,6 +122,8 @@ public class LineGraphActivity extends AppCompatActivity implements LoaderManage
                 values[j++] = ( f != null ? f: Float.NaN);
             }
 
+            //setting up line graph
+
             dataSet = new LineSet(labels, values);
             dataSet.setColor(Color.BLUE)
                     .setSmooth(true);
@@ -106,6 +131,7 @@ public class LineGraphActivity extends AppCompatActivity implements LoaderManage
 
             lineChartView.setAxisColor(Color.WHITE)
                     .setLabelsColor(Color.WHITE);
+            lineChartView.setAxisBorderValues(Math.round(axisMin) - 1, Math.round(axisMax) + 1);
 
             lineChartView.show();
         }
@@ -123,6 +149,4 @@ public class LineGraphActivity extends AppCompatActivity implements LoaderManage
     private void updateGraph() {
         getSupportLoaderManager().initLoader(CURSOR_LOADER_ID, null, this);
     }
-
-
 }

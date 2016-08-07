@@ -11,6 +11,7 @@
     <string name="input_prefill"></string>
     <string name="network_toast">Uh-oh! This app requires an internet connection</string>
     <string name="empty_view_message">You have no stocks in your list. Add one to begin tracking!</string>
+    <string name="invalid_stock">Invalid Stock!</string>
 
     <!--Key name for storing stock status in SharedPreferences-->
     <string name="pref_stock_status_key" translatable="false">stock-status</string>
